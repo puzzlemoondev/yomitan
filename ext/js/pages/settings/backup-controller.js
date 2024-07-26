@@ -17,6 +17,7 @@
  */
 
 import {Dexie} from '../../../lib/dexie.js';
+import {streamSaver} from '../../../lib/streamsaver.js';
 import {ThemeController} from '../../app/theme-controller.js';
 import {parseJson} from '../../core/json.js';
 import {log} from '../../core/log.js';
@@ -192,6 +193,18 @@ export class BackupController {
 
         a.dispatchEvent(new MouseEvent('click'));
         setTimeout(revoke, 60000);
+    }
+
+    /**
+     * @param {Blob} blob
+     * @param {string} fileName
+     */
+    async _saveBlobStreaming(blob, fileName) {
+        streamSaver.mitm = '/mitm.html';
+        /** @type {WritableStream<Uint8Array>} */
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const fileStream = streamSaver.createWriteStream(fileName);
+        await blob.stream().pipeTo(fileStream);
     }
 
     /** */
@@ -617,7 +630,7 @@ export class BackupController {
             const fileName = `yomitan-dictionaries-${this._getSettingsExportDateString(date, '-', '-', '-', 6)}.json`;
             const data = await this._exportDatabase(this._dictionariesDatabaseName);
             const blob = new Blob([data], {type: 'application/json'});
-            this._saveBlob(blob, fileName);
+            await this._saveBlobStreaming(blob, fileName);
         } catch (error) {
             log.log(error);
             this._databaseExportImportErrorMessage('Errors encountered while exporting. Please try again. Restart the browser if it continues to fail.');

@@ -15,6 +15,4 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import './js/background/background-main.js';
-import './lib/streamsaver-worker.js';
-
+import '../../node_modules/streamsaver/sw.js';
